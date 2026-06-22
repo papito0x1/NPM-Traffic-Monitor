@@ -1,5 +1,9 @@
 # NPM Traffic Control
 
+<p align="center">
+  <img src="docs/screenshot.png" alt="NPM Traffic Control screenshot" width="100%">
+</p>
+
 **Real-time npm registry traffic monitor** — every time a package is published or updated, a semi-truck drives it toward you on a perspective highway and passes through the "NPM REGISTRY ENTRY POINT" toll booth.
 
 ## How it works
