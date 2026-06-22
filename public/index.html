@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NPM Traffic Control</title>
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "/vendor/three/build/three.module.js",
+      "three/addons/": "/vendor/three/jsm/",
+      "three/examples/jsm/": "/vendor/three/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <canvas id="highway"></canvas>
+  <div id="labels"></div>
+
+  <div id="hud">
+    <div id="brand">
+      <div id="brand-icon">
+        <svg viewBox="0 0 48 48" fill="none">
+          <path d="M0,15h48v17H24v3H13v-3H0V15z" fill="currentColor"/>
+          <path d="M3 29 8 29 8 21 11 21 11 29 13 29 13 18 3 18z" fill="#fff"/>
+          <path d="M16 18v14h5v-3h5V18H16zM24 26h-3v-5h3V26z" fill="#fff"/>
+          <path d="M29 18 29 29 34 29 34 21 37 21 37 29 40 29 40 21 43 21 43 29 45 29 45 18z" fill="#fff"/>
+        </svg>
+      </div>
+      <div id="title-block">
+        <h1>Traffic Control</h1>
+        <span id="subtitle">Real-time Registry Monitor</span>
+      </div>
+
+      <div id="controls">
+        <button id="btn-sound" class="ctrl-btn" type="button" aria-pressed="true" aria-label="Toggle horn sound" title="Mute horns (M)">
+          <svg class="ico ico-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/>
+            <path d="M16 8.5a4 4 0 0 1 0 7"/>
+            <path d="M18.8 6a8 8 0 0 1 0 12"/>
+          </svg>
+          <svg class="ico ico-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/>
+            <line x1="16" y1="9.5" x2="21" y2="14.5"/>
+            <line x1="21" y1="9.5" x2="16" y2="14.5"/>
+          </svg>
+        </button>
+        <button id="btn-pause" class="ctrl-btn" type="button" aria-pressed="false" aria-label="Pause traffic" title="Pause traffic (Space)">
+          <svg class="ico ico-pause" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="5" width="4" height="14" rx="1"/>
+            <rect x="14" y="5" width="4" height="14" rx="1"/>
+          </svg>
+          <svg class="ico ico-play" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 5l12 7-12 7V5z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div id="status-badge" class="connecting" title="Connection status">
+        <span class="sb-dot"></span><span class="sb-text">CONNECTING</span>
+      </div>
+    </div>
+
+    <div id="stats-grid">
+      <div class="stat-card" data-cat="tiny">
+        <span class="stat-label">Tiny</span>
+        <span class="stat-val">0</span>
+        <span class="stat-unit">&lt;50KB</span>
+      </div>
+      <div class="stat-card" data-cat="small">
+        <span class="stat-label">Small</span>
+        <span class="stat-val">0</span>
+        <span class="stat-unit">&lt;200KB</span>
+      </div>
+      <div class="stat-card" data-cat="medium">
+        <span class="stat-label">Medium</span>
+        <span class="stat-val">0</span>
+        <span class="stat-unit">&lt;1MB</span>
+      </div>
+      <div class="stat-card" data-cat="large">
+        <span class="stat-label">Large</span>
+        <span class="stat-val">0</span>
+        <span class="stat-unit">&lt;5MB</span>
+      </div>
+      <div class="stat-card" data-cat="big">
+        <span class="stat-label">Big</span>
+        <span class="stat-val">0</span>
+        <span class="stat-unit">&lt;20MB</span>
+      </div>
+      <div class="stat-card" data-cat="huge">
+        <span class="stat-label">Huge</span>
+        <span class="stat-val">0</span>
+        <span class="stat-unit">20MB+</span>
+      </div>
+      <div class="stat-card rate" id="rate-card">
+        <span class="stat-label">Rate</span>
+        <span class="stat-val" id="rate-val">0</span>
+        <span class="stat-unit">pkg/min</span>
+      </div>
+      <div class="stat-card total">
+        <span class="stat-label">Total</span>
+        <span class="stat-val" id="total-val">0</span>
+        <span class="stat-unit">packages</span>
+      </div>
+    </div>
+
+    <div id="legend">
+      <span class="lgnd"><span class="swatch" style="background:#10b981"></span>tiny</span>
+      <span class="lgnd"><span class="swatch" style="background:#06b6d4"></span>small</span>
+      <span class="lgnd"><span class="swatch" style="background:#f59e0b"></span>medium</span>
+      <span class="lgnd"><span class="swatch" style="background:#f97316"></span>large</span>
+      <span class="lgnd"><span class="swatch" style="background:#ef4444"></span>big</span>
+      <span class="lgnd"><span class="swatch" style="background:#8b5cf6"></span>huge</span>
+    </div>
+
+    <div id="telemetry">
+      <div class="tm-line">
+        <span id="tm-uptime">00:00:00</span>
+        <span class="tm-sep">·</span>
+        <span id="tm-peak">peak 0/min</span>
+      </div>
+      <div class="tm-keys"><b>M</b> mute <span class="tm-sep">·</span> <b>Space</b> pause <span class="tm-sep">·</span> <b>H</b> hud</div>
+    </div>
+
+    <div id="session-log">
+      <div id="log-header">Session Log</div>
+      <div id="log-list"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

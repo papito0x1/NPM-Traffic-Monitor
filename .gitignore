@@ -1,0 +1,7 @@
+node_modules/
+.claude/
+*.log
+.DS_Store
+stats.json
+opencode.json
+FLUTTER_CONVERSION_PLAYBOOK.md
